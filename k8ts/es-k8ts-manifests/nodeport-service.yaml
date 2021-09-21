@@ -1,0 +1,28 @@
+# Create a namespace 
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: logging
+  labels:
+    k8s-app: elasticsearch
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: elasticsearch-service
+  namespace: logging
+  labels:
+    k8s-app: elasticsearch
+    kubernetes.io/name: "Elasticsearch"
+spec:
+  type: NodePort
+  ports:
+  - port: 9200
+    protocol: TCP
+    targetPort: db
+    #nodePort: 31311
+  selector:
+    k8s-app: elasticsearch
+apiVersion: v1
+
+
