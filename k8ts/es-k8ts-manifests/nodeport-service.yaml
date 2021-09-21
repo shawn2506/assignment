@@ -1,10 +1,12 @@
-# Create a namespace 
+# create a new namespace for this project
 apiVersion: v1
 kind: Namespace
 metadata:
   name: logging
   labels:
     k8s-app: elasticsearch
+
+# exposing service using type nodeport so that pods can be accessed from outside the EKS cluster
 ---
 apiVersion: v1
 kind: Service
@@ -20,7 +22,7 @@ spec:
   - port: 9200
     protocol: TCP
     targetPort: db
-    #nodePort: 31311
+    nodePort: 31312 # [if not defined pics random port from nodeport list of ports]
   selector:
     k8s-app: elasticsearch
 apiVersion: v1

@@ -1,4 +1,4 @@
-# Creating an Elasticsearch deployment using stateful sets.
+# Creating an Elasticsearch v6.8.18 cluster using stateful sets.
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -8,8 +8,8 @@ metadata:
     k8s-app: elasticsearch
     version: v6.8.18
 spec:
-  replicas: 1
-  #serviceName: elasticsearch-service
+  # to ensure that the ES luster is highly available will deploy 2 ES pods
+  replicas: 2 
   serviceName: elasticsearch-service
   updateStrategy:
     type: RollingUpdate
@@ -17,6 +17,7 @@ spec:
     matchLabels:
       k8s-app: elasticsearch
       version: v6.8.18
+  # to ensure that every new pod that comes up will be added a pvc of 2Gb (AWS EBS volume)
   volumeClaimTemplates:
   - metadata:
       name: elasticsearch-volume
@@ -35,6 +36,7 @@ spec:
       securityContext:
         fsGroup: 1000
       serviceAccountName: elasticsearch-service-account
+      # affinities set will ensure that there is no more that one elasticsearch pod on each worker node.
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -48,34 +50,25 @@ spec:
       containers:
       - image: docker.elastic.co/elasticsearch/elasticsearch:6.8.18
         name: elasticsearch-container      
-        #env:
-        # - name: NAMESPACE
-        #   valueFrom:
-        #     fieldRef:
-        #       fieldPath: metadata.namespace
-        # - name: NODE_NAME
-        #   valueFrom:
-        #     fieldRef:
-        #       fieldPath: metadata.name
-        # - name: "CLUSTER_NAME"
-        #   value: "shonry-elasticsearch-cluster"
         securityContext:
           privileged: true
           runAsUser: 1000
           capabilities:
             add:
             - IPC_LOCK
-            - SYS_RESOURCE
+            - SYS_RESOURCE           
+        # as  CPU is required during initialization, therefore associating it dedicated cpu
         resources:
-          # need more cpu upon initialization, therefore burstable class
           limits:
             cpu: 1000m
           requests:
             cpu: 100m
         ports:
+        # port for accepting data
         - containerPort: 9200
           name: db
           protocol: TCP
+        # port for sending data
         - containerPort: 9300
           name: transport
           protocol: TCP
@@ -87,12 +80,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-      # volumes:
-      # - name: elasticsearch-volume
-      #   emptyDir: {}
       # Elasticsearch requires vm.max_map_count to be at least 262144.
-      # If your OS already sets up this number to a higher value, feel free
-      # to remove this init container.
       initContainers:
       - image: alpine:3.6
         command: ["/sbin/sysctl", "-w", "vm.max_map_count=262144"]

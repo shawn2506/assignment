@@ -1,4 +1,5 @@
-# Role Based Access Control authentication and authorization
+## Role Based Acces Control ##
+# creating Service account for authentication and authorization
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -7,6 +8,8 @@ metadata:
   namespace: logging
   labels:
     k8s-app: elasticsearch
+
+# cluster role mentioning which rules, resources and verbs shall be allowed when service account "elasticsearch-service-account" is in use.
 ---
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
@@ -24,6 +27,7 @@ rules:
   verbs:
   - "get"
 
+# bindind service account "elasticsearch-service-account" with cluster role "elasticsearch-cluster-role"
 ---
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
