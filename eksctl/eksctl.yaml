@@ -1,0 +1,31 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+metadata:
+  name: my-eks-cluster
+  region: ap-south-1
+  version: '1.20'
+
+# To create AWS managed worker nodes use managedNodeGroups
+# To ensure that the workers are deployed across two subnets in two seperate AZ's ensure minSize to 2
+managedNodeGroups:
+  - name: managed-node-group
+    instanceType: t3.large
+    minSize: 2
+    maxSize: 3
+    ssh:
+      allow: true
+      publicKeyPath: ~/.ssh/id_rsa.pub
+    volumeSize: 20
+
+# To create self managed worker nodes use nodeGroups
+# I will me using managed workers hence commented these out
+#nodeGroups:
+#  - name: self-managed-node-group
+#    instanceType: t2.medium
+#    desiredCapacity: 2
+#    ssh:
+#      allow: true
+#      publicKeyPath: ~/.ssh/id_rsa.pub
+
+
+#reference link => https://eksctl.io/
